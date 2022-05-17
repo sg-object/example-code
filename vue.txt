@@ -1,0 +1,39 @@
+// index.html
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    </head>
+    <body>
+        
+        <div id="app">
+            <div>
+                <input v-model="name" type="text">
+            </div>
+            <div>
+                <input @change="onChange" type="file">
+            </div>
+            <button @click="test">test</button>
+        </div>
+        <script src="index.js"></script>
+        <script src="test.js"></script>
+    </body>
+</html>
+
+// index.js
+var app = new Vue({ 
+  el: '#app',
+  data: {
+      name: '',
+      image: null,
+  },
+  methods: {
+    test() {
+      console.log(this.image)
+    },
+    onChange(e) {
+      console.log(this.name)
+      console.log(e.target.files[0])
+      test()
+    }
+  }
+});
