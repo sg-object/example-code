@@ -1,6 +1,3 @@
-# Copyright (C) 2021 Intel Corporation
-#
-# SPDX-License-Identifier: MIT
 from django.db import models
 
 class TokenInfo(models.Model):
@@ -10,3 +7,11 @@ class TokenInfo(models.Model):
     
     class Meta:
         db_table = 'token_info'
+
+class SwaggerToken(models.Model):
+    token = models.CharField(primary_key=True, max_length=40)
+    user_id = models.PositiveIntegerField()
+    created = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'swagger_token'

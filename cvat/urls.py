@@ -17,7 +17,8 @@ urlpatterns = [
     path('login', LoginView.as_view(), name='rest_login'),
     path('logout', LogoutView.as_view(), name='rest_logout'),
     path('signing', SigningView.as_view(), name='signing'),
-    path('pass/<int:user_id>', PassView.as_view(), name='pass')
+    path('pass/<int:user_id>', PassView.as_view(), name='pass'),
+    path('swagger', SwaggerPassView.as_view(), name='swagger_token')
 ]
 
 if settings.IAM_TYPE == 'BASIC':

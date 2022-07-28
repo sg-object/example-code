@@ -27,6 +27,9 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.utils.timezone import now, timedelta
 
+import string
+import random
+
 def get_context(request):
     from cvat.apps.organizations.models import Organization, Membership
 
@@ -152,5 +155,36 @@ class PassView(views.APIView):
         data = {
             'token': token.key,
             'user': user.username
+        }
+        return JsonResponse(data)
+
+class SwaggerPassView(views.APIView):
+    permission_classes = []
+    def get(self, request):
+        user = request.user
+
+        if not user.is_staff and not user.is_superuser:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
+        META = request.META
+        authorization = META.get('HTTP_AUTHORIZATION')
+        if authorization == None or not authorization.startswith('Token '):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        token_key = authorization[6:]
+
+        get_object_or_404(Token, key = token_key, user_id = user.id)
+
+        token = ''
+        string_pool = string.ascii_letters + string.digits
+        for i in range(40):
+            token += random.choice(string_pool)
+
+        swagger_token = SwaggerToken()
+        swagger_token.token = token
+        swagger_token.user_id = user.id
+        swagger_token.save()
+
+        data = {
+            'redirect': '/api/swagger/?token=' + token
         }
         return JsonResponse(data)
