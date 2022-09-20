@@ -97,6 +97,10 @@ def __convertSubset(kitti_subset_path, yolo_subset_path, label_dict, image_dict)
 
 #######################################################
 
+subset_train = 'Train'
+subset_valid = 'Validation'
+subset_test = 'Test'
+
 @exporter(name='YOLO', ext='ZIP', version='5.0')
 def _export(dst_file, instance_data, save_images=False):
     instance_name = 'project' if 'project' in instance_data.meta.keys() else 'task'
@@ -107,16 +111,27 @@ def _export(dst_file, instance_data, save_images=False):
     for idx, item in enumerate(label_names):
       label_dict[item] = str(idx)
     
-    image_dict = {}
+    train_image_dict = {}
+    valid_image_dict = {}
+    test_image_dict = {}
     for frame_data in instance_data.group_by_frame():
       name = frame_data.name
       index = name.rfind('.')
       if index > 0:
         name = name[:index]
-      image_dict[name] = {
+      
+      info = {
         'width': frame_data.width,
         'height': frame_data.height
       }
+
+      subset = frame_data.subset
+      if subset == subset_train:
+        train_image_dict[name] = info
+      elif subset == subset_valid:
+        valid_image_dict[name] = info
+      else:
+        test_image_dict[name] = info
 
     dataset = Dataset.from_extractors(GetCVATDataExtractor(instance_data,
         include_images=save_images), env=dm_env)
@@ -130,17 +145,17 @@ def _export(dst_file, instance_data, save_images=False):
         with TemporaryDirectory() as yolo_dir:
             __createDataYaml(yolo_dir, label_names)
 
-            kitti_train_path = tmp_dir + '/Train/'
+            kitti_train_path = tmp_dir + '/' + subset_train + '/'
             if exists(kitti_train_path):
-                __convertSubset(kitti_train_path, yolo_dir + '/train/', label_dict, image_dict)
+                __convertSubset(kitti_train_path, yolo_dir + '/train/', label_dict, train_image_dict)
 
-            kitti_valid_path = tmp_dir + '/Validation/'
+            kitti_valid_path = tmp_dir + '/' + subset_valid + '/'
             if exists(kitti_valid_path):
-                __convertSubset(kitti_valid_path, yolo_dir + '/valid/', label_dict, image_dict)
+                __convertSubset(kitti_valid_path, yolo_dir + '/valid/', label_dict, valid_image_dict)
 
-            kitti_test_path = tmp_dir + '/Test/'
+            kitti_test_path = tmp_dir + '/' + subset_test + '/'
             if exists(kitti_test_path):
-                __convertSubset(kitti_test_path, yolo_dir + '/test/', label_dict, image_dict)
+                __convertSubset(kitti_test_path, yolo_dir + '/test/', label_dict, test_image_dict)
             
             make_zip_archive(yolo_dir, dst_file)
             
