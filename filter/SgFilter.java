@@ -1,6 +1,7 @@
 package com.example.demo.config;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.http.MediaType;
@@ -32,19 +33,21 @@ public class SgFilter extends OncePerRequestFilter {
 		final SgResponseWrapper responseWrapper = new SgResponseWrapper(response);
 		filterChain.doFilter(request, responseWrapper);
 
-		final String body = responseWrapper.getBody();
-		Object content;
+		var body = responseWrapper.getBody();
 
-		if (response.getContentType().startsWith(APPLICATION_JSON)) {
-			content = this.mapper.readTree(body);
-		} else {
-			content = body;
+		if (responseWrapper.getStatus() / 100 == 2) {
+			Object content;
+			if (response.getContentType().startsWith(APPLICATION_JSON)) {
+				content = this.mapper.readTree(body);
+			} else {
+				content = new String(body, StandardCharsets.UTF_8);
+			}
+			var sgResponse = SgResponse.builder().code("success").content(content).build();
+			body = this.mapper.writeValueAsBytes(sgResponse);
 		}
-		var sgResponse = SgResponse.builder().code("success").content(content).build();
-		var res = this.mapper.writeValueAsBytes(sgResponse);
 
-		response.setContentLength(res.length);
-		response.getOutputStream().write(res);
+		response.setContentLength(body.length);
+		response.getOutputStream().write(body);
 		response.flushBuffer();
 	}
 

@@ -2,7 +2,6 @@ package com.example.demo.config;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
@@ -26,7 +25,7 @@ public class SgResponseWrapper extends HttpServletResponseWrapper {
 		return this.sos;
 	}
 
-	public String getBody() {
-		return new String(baos.toByteArray(), StandardCharsets.UTF_8);
+	public byte[] getBody() {
+		return baos.toByteArray();
 	}
 }
